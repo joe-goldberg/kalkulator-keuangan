@@ -264,14 +264,15 @@
   .strat-mode { display:flex; gap:8px; margin-bottom:16px; }
   .mode-btn { flex:1; padding:9px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:#fff; color:var(--text-light); font-family:var(--font-body); font-weight:600; font-size:13px; cursor:pointer; transition:all .2s; }
   .mode-btn.active { border-color:var(--gold); background:var(--gold-light); color:var(--gold); font-weight:700; }
-  .bud-row { display:grid; grid-template-columns:1fr 128px 30px; gap:8px; margin-bottom:8px; align-items:center; }
-  .bud-row .input-wrap { overflow:hidden; }
+  .bud-row { display:grid; grid-template-columns:1fr 34px; grid-template-areas:"name name" "amt del"; column-gap:8px; row-gap:6px; margin-bottom:12px; align-items:center; }
+  .bud-row .bud-name { grid-area:name; width:100%; }
+  .bud-row .input-wrap { grid-area:amt; overflow:hidden; }
+  .bud-row .bud-del { grid-area:del; justify-self:center; }
   .bud-name { border:1.5px solid #D1D5DB; border-radius:var(--radius-sm); padding:9px 10px; font-family:var(--font-body); font-size:13px; color:var(--text); outline:none; background:#fff; min-width:0; }
   .bud-name:focus { border-color:var(--gold); }
-  .bud-amt { font-size:13px; }
+  .bud-amt { font-size:14px; }
   .bud-del { border:none; background:transparent; color:var(--text-muted); font-size:20px; cursor:pointer; padding:0; line-height:1; }
   .bud-del:active { transform:scale(.9); }
-  @media (max-width:400px){ .bud-row { grid-template-columns:1fr 104px 26px; } }
 </style>
 </head>
 <body>
