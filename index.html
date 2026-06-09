@@ -66,17 +66,17 @@
   }
   .tabs::-webkit-scrollbar { display: none; }
   .tab-btn {
-    flex: 1; min-width: 0; padding: 14px 10px; border: none;
+    flex: 1; min-width: 0; padding: 10px 4px; border: none;
     border-bottom: 3px solid transparent; background: transparent;
     color: var(--text-light); font-family: var(--font-body); font-weight: 500;
-    font-size: 13px; cursor: pointer; transition: all 0.25s; display: flex;
-    align-items: center; justify-content: center; gap: 6px; white-space: nowrap;
+    font-size: 12px; cursor: pointer; transition: all 0.25s; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; gap: 3px; white-space: nowrap;
   }
   .tab-btn.active {
     border-bottom-color: var(--gold); background: var(--gold-light);
     color: var(--gold); font-weight: 700;
   }
-  .tab-icon { font-size: 16px; }
+  .tab-icon { font-size: 17px; }
 
   /* Content Card */
   .content {
@@ -305,7 +305,7 @@
     <span class="tab-icon">🏖️</span> Pensiun
   </button>
   <button class="tab-btn" data-tab="emergency" onclick="switchTab('emergency')">
-    <span class="tab-icon">🛡️</span> Dana Darurat
+    <span class="tab-icon">🛡️</span> Darurat
   </button>
   <button class="tab-btn" data-tab="strategy" onclick="switchTab('strategy')">
     <span class="tab-icon">🧭</span> Strategi
