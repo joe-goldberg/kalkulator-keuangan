@@ -259,6 +259,19 @@
     border-radius: 8px; font-weight: 700; font-size: 12px; cursor: pointer;
     font-family: var(--font-body);
   }
+
+  /* Strategy: mode toggle + budget rows */
+  .strat-mode { display:flex; gap:8px; margin-bottom:16px; }
+  .mode-btn { flex:1; padding:9px; border:1.5px solid var(--border); border-radius:var(--radius-sm); background:#fff; color:var(--text-light); font-family:var(--font-body); font-weight:600; font-size:13px; cursor:pointer; transition:all .2s; }
+  .mode-btn.active { border-color:var(--gold); background:var(--gold-light); color:var(--gold); font-weight:700; }
+  .bud-row { display:grid; grid-template-columns:1fr 128px 30px; gap:8px; margin-bottom:8px; align-items:center; }
+  .bud-row .input-wrap { overflow:hidden; }
+  .bud-name { border:1.5px solid #D1D5DB; border-radius:var(--radius-sm); padding:9px 10px; font-family:var(--font-body); font-size:13px; color:var(--text); outline:none; background:#fff; min-width:0; }
+  .bud-name:focus { border-color:var(--gold); }
+  .bud-amt { font-size:13px; }
+  .bud-del { border:none; background:transparent; color:var(--text-muted); font-size:20px; cursor:pointer; padding:0; line-height:1; }
+  .bud-del:active { transform:scale(.9); }
+  @media (max-width:400px){ .bud-row { grid-template-columns:1fr 104px 26px; } }
 </style>
 </head>
 <body>
@@ -293,6 +306,9 @@
   </button>
   <button class="tab-btn" data-tab="emergency" onclick="switchTab('emergency')">
     <span class="tab-icon">🛡️</span> Dana Darurat
+  </button>
+  <button class="tab-btn" data-tab="strategy" onclick="switchTab('strategy')">
+    <span class="tab-icon">🧭</span> Strategi
   </button>
 </div>
 
@@ -464,6 +480,59 @@
   </div>
 </div>
 
+<!-- ═══════ STRATEGY TAB ═══════ -->
+<div class="content" id="tab-strategy" style="display:none;">
+  <h3 class="section-title">🧭 Atur Prioritas</h3>
+  <p style="font-size:12px;color:var(--text-light);margin:-8px 0 14px;line-height:1.5">
+    Target & kebutuhan bulanan diambil otomatis dari tab <b>Pendidikan</b>, <b>Pensiun</b>, dan <b>Dana Darurat</b>. Ubah asumsi di sana, strategi ini ikut menyesuaikan.
+  </p>
+
+  <div class="strat-mode">
+    <button id="modeBudget" class="mode-btn active" onclick="setMode('budget')">📋 Dari budget</button>
+    <button id="modeManual" class="mode-btn" onclick="setMode('manual')">✏️ Input manual</button>
+  </div>
+
+  <div id="budgetBox">
+    <div class="field">
+      <label class="field-label">Penghasilan bulanan</label>
+      <div class="input-wrap"><span class="input-prefix">Rp</span><input type="text" id="budIncome" value="8.000.000" oninput="onBudgetChange()"></div>
+    </div>
+    <label class="field-label">Pos pengeluaran</label>
+    <div id="budRows"></div>
+    <button class="toggle-btn" style="margin-top:2px;margin-bottom:14px" onclick="addBudgetRow()">+ Tambah pos pengeluaran</button>
+    <div class="field">
+      <label class="field-label">Tabungan rutin yang sudah kamu sisihkan <span style="color:var(--text-muted);font-weight:400">(opsional)</span></label>
+      <div class="input-wrap"><span class="input-prefix">Rp</span><input type="text" id="budSaved" value="0" oninput="onBudgetChange()"></div>
+    </div>
+    <div id="budResult" style="margin-bottom:6px"></div>
+  </div>
+
+  <div id="manualBox" style="display:none">
+    <div class="field">
+      <label class="field-label">Uang yang bisa ditabung tiap bulan</label>
+      <div class="input-wrap"><span class="input-prefix">Rp</span><input type="text" id="stratSurplus" value="3.000.000" oninput="onSurplusChange()"></div>
+    </div>
+  </div>
+
+  <h3 class="section-title" style="margin-top:20px;font-size:16px">Bagi ke tujuan</h3>
+  <div id="stratAlloc"></div>
+  <div id="stratSisa" style="font-size:12px;margin:4px 0 4px;text-align:right"></div>
+  <button class="toggle-btn" onclick="autoAllocate()">✨ Saran otomatis (amankan darurat dulu)</button>
+  <div id="stratMerdeka" class="result result-accent" style="margin-top:18px"></div>
+  <div id="stratAha" style="margin-top:10px;padding:12px 14px;background:var(--gold-light);border-left:3px solid var(--gold);border-radius:var(--radius-xs);font-size:12px;color:var(--text-mid);line-height:1.55"></div>
+
+  <h3 class="section-title" style="margin-top:26px">📈 Lacak Progres</h3>
+  <p style="font-size:12px;color:var(--text-light);margin:-8px 0 16px;line-height:1.5">
+    Saldo di sini tersambung dua arah dengan tab kalkulator — ubah di sini, berubah di sana. Catat tiap bulan dan lihat garismu bergerak.
+  </p>
+  <div id="stratTrack"></div>
+  <button class="toggle-btn open" onclick="saveSnapshot()">💾 Simpan saldo bulan ini</button>
+  <div style="margin-top:10px;padding:9px 12px;background:#F3F4F6;border-radius:var(--radius-xs);font-size:11px;color:var(--text-light);line-height:1.5">
+    🔒 Datamu disimpan <b>hanya di perangkat & browser ini</b> (localStorage di HP/komputermu). Tidak dikirim ke server mana pun, dan tidak sinkron antar-perangkat. Menghapus data browser atau memakai mode incognito akan menghilangkannya.
+  </div>
+  <div id="stratHistory"></div>
+</div>
+
 <!-- Footer -->
 <div class="footer">
   ⚠️ Kalkulator ini hanya untuk simulasi. Konsultasikan dengan perencana keuangan profesional.<br>
@@ -499,7 +568,7 @@ document.querySelectorAll('input[type="range"]').forEach(el => {
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-  ['education','retirement','emergency'].forEach(t => {
+  ['education','retirement','emergency','strategy'].forEach(t => {
     document.getElementById('tab-'+t).style.display = t === tab ? 'block' : 'none';
   });
   // Re-animate
@@ -507,6 +576,7 @@ function switchTab(tab) {
   el.style.animation = 'none';
   el.offsetHeight;
   el.style.animation = 'slideUp 0.35s ease';
+  if (tab === 'strategy') renderStrategy();
 }
 
 // ─── Share ───────────────────────────────────────────────
@@ -680,6 +750,8 @@ function calcEducation() {
   document.getElementById('refNote').innerHTML =
     `⚠️ Belum termasuk inflasi. Dengan inflasi ${inflasi}%/tahun, total bisa <strong>${fmtRpShort(totalInf)}</strong>`;
 
+  STRAT.edu = { label:'Pendidikan', icon:'🎓', target: totalInf, current: lump, monthly: totalMonthly, ret: ret };
+  syncTrackFromCalc('edu', lump);
   document.getElementById('eduResults').innerHTML = `
     <div class="result result-accent">
       <div class="result-label" style="color:var(--gold)">Total Biaya Pendidikan (dengan Inflasi)</div>
@@ -763,6 +835,8 @@ function calcRetirement() {
   if (r > 0 && n > 0) investBulanan = sisa * r / (Math.pow(1 + r, n) - 1);
   else if (n > 0) investBulanan = sisa / n;
 
+  STRAT.ret = { label:'Pensiun', icon:'🏖️', target: target, current: tabungan, monthly: investBulanan, ret: ret };
+  syncTrackFromCalc('ret', tabungan);
   document.getElementById('retResults').innerHTML = `
     <div class="result result-accent">
       <div class="result-label" style="color:var(--gold)">Target Dana Pensiun</div>
@@ -839,6 +913,8 @@ function calcEmergency() {
     </div>
   ` : '';
 
+  STRAT.em = { label:'Dana Darurat', icon:'🛡️', target: target, current: dana, monthly: nabung, ret: ret };
+  syncTrackFromCalc('em', dana);
   document.getElementById('emResults').innerHTML = `
     <div class="progress-box">
       <div class="progress-header">
@@ -862,6 +938,266 @@ function calcEmergency() {
   `;
 }
 
+// ─── Strategy / Trade-off Engine ────────────────────────
+const STRAT = {};
+const STRAT_KEY = 'kalk_progress_v1';
+const STRAT_ORDER = ['em','edu','ret'];
+const BAL_LINK = { em:'emDana', edu:'eduLumpsum', ret:'retTabungan' };
+const CALC_FN = { em:calcEmergency, edu:calcEducation, ret:calcRetirement };
+const BulanID = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+let stratMode = 'budget';
+const BUDGET_DEFAULT = [
+  ['Sewa / cicilan rumah', 2000000],
+  ['Makan & belanja', 1500000],
+  ['Transport', 500000],
+  ['Listrik, air, internet', 500000],
+  ['Cicilan lain', 0],
+  ['Hiburan & lain-lain', 500000]
+];
+
+function loadProgress(){ try { return JSON.parse(localStorage.getItem(STRAT_KEY)) || []; } catch(e){ return []; } }
+function saveProgress(a){ try { localStorage.setItem(STRAT_KEY, JSON.stringify(a)); } catch(e){} }
+function curBal(k){ return STRAT[k] ? STRAT[k].current : 0; }
+function roundTo(n){ return Math.round(n/100000)*100000; }
+
+// ----- Budget mode -----
+function budRowHTML(i,name,amt){
+  return '<div class="bud-row" id="budrow-'+i+'">'
+    + '<input type="text" class="bud-name" value="'+name+'" placeholder="Nama pos" oninput="onBudgetChange()">'
+    + '<div class="input-wrap"><span class="input-prefix">Rp</span><input type="text" class="bud-amt" value="'+(amt?amt.toLocaleString('id-ID'):'0')+'" oninput="onBudgetChange()"></div>'
+    + '<button class="bud-del" onclick="delBudgetRow('+i+')" aria-label="hapus">×</button></div>';
+}
+function renderBudgetRows(){
+  const box=document.getElementById('budRows');
+  if (box.dataset.built) return;
+  let html=''; BUDGET_DEFAULT.forEach((b,i)=>{ html+=budRowHTML(i,b[0],b[1]); });
+  box.innerHTML=html; box.dataset.built='1'; box.dataset.n=BUDGET_DEFAULT.length;
+}
+function addBudgetRow(){
+  const box=document.getElementById('budRows');
+  const n=+(box.dataset.n||0);
+  box.insertAdjacentHTML('beforeend', budRowHTML(n,'',0));
+  box.dataset.n=n+1; onBudgetChange();
+}
+function delBudgetRow(i){
+  const row=document.getElementById('budrow-'+i);
+  if (row) row.remove();
+  onBudgetChange();
+}
+function getBudget(){
+  const income=parseRp(document.getElementById('budIncome').value);
+  const saved=parseRp(document.getElementById('budSaved').value);
+  let exp=0;
+  document.querySelectorAll('#budRows .bud-amt').forEach(el=>{ exp+=parseRp(el.value); });
+  return { income, saved, exp, disposable: income-exp };
+}
+function onBudgetChange(){
+  formatInputRp(document.getElementById('budIncome'));
+  formatInputRp(document.getElementById('budSaved'));
+  document.querySelectorAll('#budRows .bud-amt').forEach(el=>formatInputRp(el));
+  const b=getBudget();
+  let html='<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-light);margin-bottom:6px"><span>Total pengeluaran</span><span>'+fmtRp(b.exp)+'</span></div>';
+  if (b.disposable < 0){
+    html+='<div class="result result-normal" style="border-color:var(--red)"><div class="result-label" style="color:var(--red)">Pengeluaran melebihi penghasilan</div><div class="result-value" style="font-size:18px;color:var(--red)">−'+fmtRp(-b.disposable)+'</div><div class="result-sub" style="color:var(--text-muted)">Kurangi salah satu pos dulu sebelum menabung.</div></div>';
+  } else {
+    html+='<div class="result result-accent"><div class="result-label" style="color:var(--gold)">Dana Bulanan untuk Tujuan</div><div class="result-value" style="font-size:22px;color:#fff">'+fmtRp(b.disposable)+'</div><div class="result-sub" style="color:rgba(255,255,255,0.6)">'+fmtRp(b.income)+' penghasilan − '+fmtRp(b.exp)+' pengeluaran</div></div>';
+    if (b.saved>0 && b.disposable>b.saved){
+      html+='<div style="margin-top:8px;padding:10px 12px;background:var(--gold-light);border-left:3px solid var(--gold);border-radius:var(--radius-xs);font-size:12px;color:var(--text-mid);line-height:1.5">\U0001F4A1 Selama ini kamu sisihkan <b>'+fmtRp(b.saved)+'</b>. Ternyata ada <b>'+fmtRp(b.disposable)+'</b> tersedia — <b>'+fmtRp(b.disposable-b.saved)+'</b> lagi bisa kamu arahkan ke tujuanmu.</div>';
+    }
+  }
+  document.getElementById('budResult').innerHTML=html;
+  renderStrategy();
+}
+function computeSurplus(){
+  if (stratMode==='manual') return parseRp(document.getElementById('stratSurplus').value);
+  return Math.max(0, getBudget().disposable);
+}
+function parseSurplus(){ return computeSurplus(); }
+function setMode(m){
+  stratMode=m;
+  document.getElementById('modeBudget').classList.toggle('active', m==='budget');
+  document.getElementById('modeManual').classList.toggle('active', m==='manual');
+  document.getElementById('budgetBox').style.display = m==='budget'?'block':'none';
+  document.getElementById('manualBox').style.display = m==='manual'?'block':'none';
+  renderStrategy();
+}
+function onSurplusChange(){ formatInputRp(document.getElementById('stratSurplus')); renderStrategy(); }
+
+// ----- Two-way balance sync -----
+function onTrackInput(k){
+  const t=document.getElementById('track-'+k);
+  formatInputRp(t);
+  const v=parseRp(t.value);
+  const c=document.getElementById(BAL_LINK[k]);
+  if (c) c.value=v.toLocaleString('id-ID');
+  if (CALC_FN[k]) CALC_FN[k]();
+  renderStrategy();
+}
+function syncTrackFromCalc(k,val){
+  const t=document.getElementById('track-'+k);
+  if (t && document.activeElement!==t) t.value=Math.round(val).toLocaleString('id-ID');
+}
+
+function monthsToTarget(cur,tgt,alloc,annualRet){
+  if (cur>=tgt) return 0;
+  if (alloc<=0) return null;
+  const r=annualRet/100/12; let b=cur,m=0;
+  while (b<tgt && m<900){ b=b*(1+r)+alloc; m++; }
+  return m>=900 ? null : m;
+}
+function dateFromMonths(m){
+  if (m===null) return 'Tak tercapai';
+  if (m===0) return 'Tercapai ✓';
+  const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+m);
+  return BulanID[d.getMonth()]+' '+d.getFullYear();
+}
+function stratReady(){ return STRAT.em && STRAT.edu && STRAT.ret; }
+
+function buildStrategyDOM(){
+  let html='';
+  STRAT_ORDER.forEach(k=>{
+    const g=STRAT[k]; if(!g) return;
+    html += '<div class="breakdown-card" style="border-left:3px solid var(--gold)">'
+      + '<div class="breakdown-header"><span class="breakdown-name">'+g.icon+' '+g.label+'</span>'
+      + '<span class="breakdown-badge" id="alloc-date-'+k+'">—</span></div>'
+      + '<div style="font-size:11px;color:var(--text-light);margin-bottom:8px">Target '+fmtRpShort(g.target)+' · disarankan '+fmtRpShort(g.monthly)+'/bln</div>'
+      + '<input type="range" id="alloc-'+k+'" min="0" max="5000000" step="100000" value="0" oninput="renderStrategy()" style="margin-bottom:6px">'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px">'
+      + '<span style="color:var(--text-light)">tabung <b id="alloc-amt-'+k+'" style="color:var(--navy)">Rp 0</b>/bln</span>'
+      + '<span id="alloc-pct-'+k+'" style="font-size:11px"></span></div>'
+      + '<div class="progress-track" style="height:6px;margin-top:6px"><div class="progress-fill" id="alloc-bar-'+k+'" style="width:0%;background:var(--gold)"></div></div>'
+      + '</div>';
+  });
+  document.getElementById('stratAlloc').innerHTML = html;
+  let th='';
+  STRAT_ORDER.forEach(k=>{
+    const g=STRAT[k]; if(!g) return;
+    th += '<div class="field" style="margin-bottom:10px"><label class="field-label">'+g.icon+' '+g.label+' — saldo saat ini</label>'
+      + '<div class="input-wrap"><span class="input-prefix">Rp</span>'
+      + '<input type="text" id="track-'+k+'" value="'+Math.round(curBal(k)).toLocaleString('id-ID')+'" oninput="onTrackInput(\''+k+'\')"></div></div>';
+  });
+  document.getElementById('stratTrack').innerHTML = th;
+  document.getElementById('stratAlloc').dataset.built='1';
+}
+
+function autoAllocate(){
+  if (!stratReady()) return;
+  if (!document.getElementById('stratAlloc').dataset.built) buildStrategyDOM();
+  const surplus=parseSurplus();
+  let remaining=surplus, a={em:0,edu:0,ret:0};
+  if (curBal('em') < STRAT.em.target){ a.em=Math.min(remaining, roundTo(surplus*0.5)); remaining-=a.em; }
+  a.ret=roundTo(remaining*0.55);
+  a.edu=Math.max(0, remaining-a.ret);
+  STRAT_ORDER.forEach(k=>{ const sl=document.getElementById('alloc-'+k); sl.max=Math.max(surplus,1000000); sl.value=Math.max(0,a[k]); });
+  renderStrategy();
+}
+
+function renderStrategy(){
+  if (!stratReady()) return;
+  const allocEl=document.getElementById('stratAlloc');
+  if (!allocEl.dataset.built){ buildStrategyDOM(); autoAllocate(); return; }
+  const surplus=parseSurplus();
+  STRAT_ORDER.forEach(k=>{ document.getElementById('alloc-'+k).max=Math.max(surplus,1000000); });
+  const allocs={}; let total=0;
+  STRAT_ORDER.forEach(k=>{ allocs[k]=+document.getElementById('alloc-'+k).value; total+=allocs[k]; updateSliderBg(document.getElementById('alloc-'+k)); });
+  const sisa=surplus-total;
+  const sisaEl=document.getElementById('stratSisa');
+  if (sisa<0) sisaEl.innerHTML='<span style="color:var(--red)">⚠️ Alokasi melebihi dana bulananmu '+fmtRp(-sisa)+'. Kurangi salah satu.</span>';
+  else sisaEl.innerHTML='<span style="color:var(--text-light)">Belum dialokasikan: <b style="color:var(--navy)">'+fmtRp(sisa)+'</b></span>';
+
+  let maxM=0, allReached=true, pctSum=0, onTrackCount=0;
+  STRAT_ORDER.forEach(k=>{
+    const g=STRAT[k], cur=curBal(k);
+    const m=monthsToTarget(cur,g.target,allocs[k],g.ret);
+    document.getElementById('alloc-date-'+k).textContent=dateFromMonths(m);
+    document.getElementById('alloc-amt-'+k).textContent=fmtRp(allocs[k]);
+    const enough = allocs[k] >= g.monthly-1;
+    if (enough || cur>=g.target) onTrackCount++;
+    const short = Math.max(0, g.monthly-allocs[k]);
+    document.getElementById('alloc-pct-'+k).innerHTML = (cur>=g.target)
+      ? '<span style="color:var(--green-accent)">✓ sudah cukup</span>'
+      : (enough ? '<span style="color:var(--green-accent)">✓ sesuai rencana</span>'
+                : '<span style="color:var(--orange)">⚠ kurang '+fmtRpShort(short)+'/bln</span>');
+    const pct=g.target>0?Math.min(100,Math.round(cur/g.target*100)):0;
+    document.getElementById('alloc-bar-'+k).style.width=pct+'%';
+    pctSum+=pct;
+    if (m===null) allReached=false; else if (m>maxM) maxM=m;
+  });
+  const merdekaPct=Math.round(pctSum/STRAT_ORDER.length);
+  document.getElementById('stratMerdeka').innerHTML=
+    '<div class="result-label" style="color:var(--gold)">Merdeka Finansial Penuh</div>'
+    +'<div class="result-value" style="font-size:22px;color:#fff">'+(allReached?dateFromMonths(maxM):'Belum tercapai')+'</div>'
+    +'<div class="result-sub" style="color:rgba(255,255,255,0.6)">'+onTrackCount+' dari 3 tujuan terdanai sesuai rencana · '+merdekaPct+'% menuju merdeka</div>';
+
+  const rr=STRAT.ret.ret/100/12, mult=Math.pow(1+rr,300);
+  document.getElementById('stratAha').innerHTML=
+    '<strong>\U0001F4A1 Biaya menunda:</strong> karena bunga berbunga, <strong>Rp 100rb</strong> yang masuk ke pensiun <strong>hari ini</strong> bernilai <strong>'+fmtRp(100000*mult)+'</strong> saat pensiun (±25 thn). Tiap rupiah yang kamu geser ke tujuan lain sekarang, itulah yang diam-diam kamu korbankan.';
+  renderHistory();
+}
+
+function entryMonth(e){ return e.m || (e.ts ? e.ts.slice(0,7) : ''); }
+function monthLabel(mk){ if(!mk) return '—'; const p=mk.split('-'); return BulanID[(+p[1])-1]+' '+p[0]; }
+function snapPct(snap){
+  let ps=0;
+  STRAT_ORDER.forEach(k=>{ const g=STRAT[k], c=snap.bal[k]||0; ps += (g&&g.target>0)?Math.min(100,c/g.target*100):0; });
+  return ps/STRAT_ORDER.length;
+}
+function deleteSnapshot(mk){
+  if (typeof confirm==='function' && !confirm('Hapus catatan '+monthLabel(mk)+'?')) return;
+  saveProgress(loadProgress().filter(e=>entryMonth(e)!==mk));
+  renderStrategy();
+}
+
+function saveSnapshot(){
+  if (!document.getElementById('stratAlloc').dataset.built) return;
+  const bal={};
+  STRAT_ORDER.forEach(k=>{ const el=document.getElementById('track-'+k); bal[k]=el?parseRp(el.value):curBal(k); });
+  const now=new Date();
+  const mk=now.toISOString().slice(0,7);
+  const ds=now.toISOString().slice(0,10);
+  const h=loadProgress();
+  const idx=h.findIndex(e=>entryMonth(e)===mk);
+  if (idx>=0){ h[idx].m=mk; h[idx].ts=ds; h[idx].bal=bal; }
+  else h.push({ m:mk, ts:ds, bal:bal });
+  saveProgress(h);
+  const toast=document.getElementById('toast');
+  toast.textContent='✓ Saldo '+monthLabel(mk)+' tersimpan';
+  toast.classList.remove('hidden');
+  setTimeout(()=>toast.classList.add('hidden'),2200);
+  renderStrategy();
+}
+
+function renderHistory(){
+  const el=document.getElementById('stratHistory'); if(!el) return;
+  const h=loadProgress();
+  if (!h.length){ el.innerHTML='<p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:10px">Belum ada catatan. Simpan saldo pertamamu untuk mulai melihat progres.</p>'; return; }
+  const pts=h.map(snapPct);
+  const w=280,hh=56,pad=4;
+  const stepX=pts.length>1?(w-2*pad)/(pts.length-1):0;
+  const coords=pts.map((p,i)=>(pad+i*stepX).toFixed(1)+','+(hh-pad-(p/100)*(hh-2*pad)).toFixed(1)).join(' ');
+  const last=pts[pts.length-1], first=pts[0], delta=last-first;
+  const spark = pts.length>1
+    ? '<svg width="100%" viewBox="0 0 '+w+' '+hh+'" preserveAspectRatio="none" style="display:block;margin:6px 0"><polyline fill="none" stroke="#C8963E" stroke-width="2" points="'+coords+'"/></svg>'
+    : '<div style="font-size:11px;color:var(--text-muted);text-align:center;margin:8px 0">Simpan sekali lagi bulan depan untuk melihat garis progres.</div>';
+  let list='';
+  for (let i=h.length-1;i>=0;i--){
+    const e=h[i], mk=entryMonth(e);
+    list += '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 2px;border-bottom:0.5px solid var(--border)">'
+      + '<span style="font-size:13px;color:var(--text-mid)">'+monthLabel(mk)+'</span>'
+      + '<span style="display:flex;align-items:center;gap:14px">'
+      + '<span style="font-size:13px;font-weight:700;color:var(--gold)">'+Math.round(snapPct(e))+'%</span>'
+      + '<button onclick="deleteSnapshot(\''+mk+'\')" style="border:none;background:transparent;color:var(--text-muted);font-size:18px;cursor:pointer;padding:0 2px;line-height:1" aria-label="hapus catatan">×</button>'
+      + '</span></div>';
+  }
+  el.innerHTML='<div class="progress-box" style="margin-top:12px">'
+    +'<div class="progress-header"><span style="color:var(--text-mid)">Progres merdeka</span><span style="color:var(--gold)">'+last.toFixed(0)+'%</span></div>'
+    +spark
+    +'<div class="progress-footer"><span>'+h.length+' catatan</span><span>'+(delta>=0?'▲ +':'▼ ')+Math.abs(delta).toFixed(1)+'% sejak awal</span></div></div>'
+    +'<div style="margin-top:8px">'+list+'</div>';
+}
+
+function initBudget(){ renderBudgetRows(); onBudgetChange(); }
+
 // ─── Service Worker for PWA ─────────────────────────────
 if ('serviceWorker' in navigator) {
   const swCode = `
@@ -881,6 +1217,8 @@ renderJenjangInputs();
 calcEducation();
 calcRetirement();
 calcEmergency();
+initBudget();
+renderStrategy();
 </script>
 </body>
 </html>
